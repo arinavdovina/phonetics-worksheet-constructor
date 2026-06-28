@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phonetics Worksheet Constructor · FreshTeacher</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rust: #C0522A;
+    --rust-light: #E07045;
+    --rust-pale: #F2E0D8;
+    --cream: #FAF6F0;
+    --beige: #EDE5D8;
+    --beige-mid: #D9CCB8;
+    --dark: #2A1F15;
+    --mid: #5C4535;
+    --muted: #8C7060;
+    --white: #FDFAF7;
+    --green: #3D7A5A;
+    --green-pale: #D4EAE0;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--dark); min-height: 100vh; line-height: 1.6; }
+  header { background: var(--dark); padding: 18px 40px; display: flex; align-items: center; gap: 14px; }
+  .logo { font-family: 'Unbounded', sans-serif; font-size: 13px; font-weight: 800; color: var(--rust-light); letter-spacing: .04em; text-transform: uppercase; }
+  .logo span { color: var(--beige-mid); font-weight: 400; }
+  .header-tag { background: var(--rust); color: var(--cream); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; margin-left: auto; }
+  .hero { background: linear-gradient(135deg, var(--dark) 0%, #3D2817 100%); padding: 48px 40px 40px; position: relative; overflow: hidden; }
+  .hero::after { content: 'Фонетика'; position: absolute; right: -20px; top: 50%; transform: translateY(-50%); font-family: 'Unbounded', sans-serif; font-size: 110px; font-weight: 800; color: rgba(255,255,255,.04); pointer-events: none; white-space: nowrap; }
+  .hero h1 { font-family: 'Unbounded', sans-serif; font-size: clamp(20px, 4vw, 32px); font-weight: 800; color: var(--cream); line-height: 1.2; max-width: 600px; }
+  .hero h1 em { color: var(--rust-light); font-style: normal; }
+  .hero p { color: var(--beige-mid); margin-top: 10px; font-size: 14px; max-width: 500px; }
+  .main { max-width: 880px; margin: 0 auto; padding: 36px 24px 80px; }
+  .step { background: var(--white); border-radius: var(--radius); margin-bottom: 18px; border: 1.5px solid var(--beige); overflow: hidden; }
+  .step-header { display: flex; align-items: center; gap: 14px; padding: 18px 24px; background: var(--beige); border-bottom: 1.5px solid var(--beige-mid); }
+  .step-num { width: 30px; height: 30px; background: var(--rust); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Unbounded', sans-serif; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .step-title { font-family: 'Unbounded', sans-serif; font-size: 12px; font-weight: 600; color: var(--mid); text-transform: uppercase; letter-spacing: .04em; }
+  .step-body { padding: 22px; }
+  .field-label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 7px; }
+  input[type=text], textarea, select { width: 100%; background: var(--cream); border: 1.5px solid var(--beige-mid); border-radius: var(--radius-sm); padding: 10px 13px; font-family: 'Nunito', sans-serif; font-size: 14px; color: var(--dark); transition: border-color .2s; outline: none; resize: vertical; }
+  input:focus, textarea:focus, select:focus { border-color: var(--rust); background: var(--white); }
+  select { cursor: pointer; }
+  .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 580px) { .row-2 { grid-template-columns: 1fr; } }
+  /* SECTION CARDS */
+  .sections-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 9px; }
+  .sec-card { background: var(--cream); border: 1.5px solid var(--beige-mid); border-radius: var(--radius-sm); padding: 13px 15px; cursor: pointer; transition: all .18s; user-select: none; }
+  .sec-card:hover { border-color: var(--rust); background: var(--rust-pale); }
+  .sec-card.active { border-color: var(--rust); background: var(--rust-pale); }
+  .sec-top { display: flex; align-items: center; gap: 9px; margin-bottom: 3px; }
+  .sec-icon { font-size: 18px; line-height: 1; }
+  .sec-name { font-family: 'Unbounded', sans-serif; font-size: 10px; font-weight: 600; color: var(--mid); flex: 1; }
+  .sec-card.active .sec-name { color: var(--rust); }
+  .sec-desc { font-size: 11px; color: var(--muted); line-height: 1.35; }
+  .check-box { width: 16px; height: 16px; border: 2px solid var(--beige-mid); border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .18s; font-size: 10px; font-weight: 700; color: transparent; }
+  .sec-card.active .check-box { background: var(--rust); border-color: var(--rust); color: #fff; }
+  /* PILLS */
+  .pills-wrap { display: flex; flex-wrap: wrap; gap: 7px; }
+  .pill { padding: 7px 15px; border-radius: 20px; background: var(--cream); border: 1.5px solid var(--beige-mid); font-size: 13px; font-weight: 600; color: var(--mid); cursor: pointer; transition: all .18s; user-select: none; }
+  .pill:hover { border-color: var(--rust); color: var(--rust); }
+  .pill.active { background: var(--rust); border-color: var(--rust); color: #fff; }
+  /* CHARACTER CARDS */
+  .chars-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 9px; }
+  .char-card { background: var(--cream); border: 1.5px solid var(--beige-mid); border-radius: var(--radius-sm); padding: 11px 10px; cursor: pointer; transition: all .18s; user-select: none; text-align: center; }
+  .char-card:hover { border-color: var(--rust); background: var(--rust-pale); }
+  .char-card.active { border-color: var(--rust); background: var(--rust-pale); }
+  .char-emoji { font-size: 26px; display: block; margin-bottom: 4px; }
+  .char-name { font-family: 'Unbounded', sans-serif; font-size: 9px; font-weight: 600; color: var(--mid); }
+  .char-card.active .char-name { color: var(--rust); }
+  /* GENERATE */
+  .generate-wrap { margin-top: 28px; text-align: center; }
+  .btn-generate { display: inline-flex; align-items: center; gap: 12px; background: var(--rust); color: #fff; border: none; border-radius: 40px; padding: 17px 42px; font-family: 'Unbounded', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; cursor: pointer; transition: all .2s; box-shadow: 0 4px 24px rgba(192,82,42,.28); }
+  .btn-generate:hover { background: var(--rust-light); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(192,82,42,.35); }
+  .btn-generate:active { transform: translateY(0); }
+  .hint { background: var(--green-pale); border: 1.5px solid #A8D5BE; border-radius: var(--radius-sm); padding: 10px 15px; font-size: 12px; color: var(--green); font-weight: 600; margin-top: 14px; display: inline-block; }
+  .output-wrap { margin-top: 24px; display: none; }
+  .output-wrap.visible { display: block; }
+  .output-box { background: var(--dark); border-radius: var(--radius); overflow: hidden; }
+  .output-top { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; border-bottom: 1px solid rgba(255,255,255,.1); }
+  .output-label { font-family: 'Unbounded', sans-serif; font-size: 10px; font-weight: 700; color: var(--rust-light); text-transform: uppercase; letter-spacing: .12em; }
+  .btn-copy { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); color: var(--beige-mid); border-radius: 6px; padding: 5px 13px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .18s; }
+  .btn-copy:hover { background: rgba(255,255,255,.15); color: #fff; }
+  .btn-copy.copied { color: #7ECBA0; border-color: #7ECBA0; }
+  .output-text { padding: 22px; font-family: 'Nunito', sans-serif; font-size: 13px; color: var(--beige); line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+  .loading-wrap { display: none; text-align: center; padding: 36px; }
+  .loading-wrap.visible { display: block; }
+  .spinner { width: 36px; height: 36px; border: 3px solid var(--beige-mid); border-top-color: var(--rust); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 14px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-family: 'Unbounded', sans-serif; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+  .output-note { color: var(--beige-mid); font-size: 12px; margin-top: 12px; text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Fresh<span>Teacher</span></div>
+  <div class="header-tag">Phonetics Constructor</div>
+</header>
+
+<div class="hero">
+  <h1>Конструктор<br><em>фонетического воркшита</em></h1>
+  <p>Соберите рабочий лист под любой звук и язык — получите готовый промт для генерации через ИИ.</p>
+</div>
+
+<div class="main">
+
+  <!-- STEP 1 -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-title">Язык и звук</div>
+    </div>
+    <div class="step-body">
+      <div class="row-2">
+        <div class="field">
+          <span class="field-label">Язык обучения</span>
+          <select id="langSelect">
+            <option value="">— выберите —</option>
+            <option>Английский</option>
+            <option>Французский</option>
+            <option>Немецкий</option>
+            <option>Испанский</option>
+            <option>Итальянский</option>
+            <option>Русский (РКИ)</option>
+            <option>Португальский</option>
+            <option>Китайский</option>
+            <option>Арабский</option>
+            <option>Японский</option>
+            <option value="другой">Другой…</option>
+          </select>
+        </div>
+        <div class="field" id="customLangField" style="display:none;">
+          <span class="field-label">Укажите язык</span>
+          <input type="text" id="customLang" placeholder="например, Турецкий">
+        </div>
+        <div class="field">
+          <span class="field-label">Целевой звук / фонема</span>
+          <input type="text" id="soundInput" placeholder="например: /θ/, [r], [ɑ̃]">
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">Примеры слов с этим звуком (через запятую)</span>
+        <input type="text" id="exampleWords" placeholder="think, three, through, bath, tooth">
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <span class="field-label">Уровень CEFR (необязательно)</span>
+          <select id="cefrLevel">
+            <option value="">не указан</option>
+            <option>A1</option><option>A2</option><option>B1</option>
+            <option>B2</option><option>C1</option><option>C2</option>
+          </select>
+        </div>
+        <div class="field">
+          <span class="field-label">Возраст учеников</span>
+          <select id="ageGroup">
+            <option value="">не указан</option>
+            <option value="дети 6–9 лет">Дети 6–9 лет</option>
+            <option value="дети 10–12 лет">Дети 10–12 лет</option>
+            <option value="подростки 13–17 лет">Подростки 13–17 лет</option>
+            <option value="взрослые">Взрослые</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: 12 СЕКЦИЙ -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-title">Секции рабочего листа</div>
+    </div>
+    <div class="step-body">
+      <div class="sections-grid" id="sectionsGrid">
+        <div class="sec-card active" data-sec="строки слов (3 строки × 8 слов с целевым звуком)">
+          <div class="sec-top"><span class="sec-icon">🔤</span><span class="sec-name">Строки слов</span><div class="check-box">✓</div></div>
+          <div class="sec-desc">3 строки × 8 слов с целевым звуком</div>
+        </div>
+        <div class="sec-card active" data-sec="короткие предложения для чтения вслух (5–7 предложений, каждое содержит целевой звук)">
+          <div class="sec-top"><span class="sec-icon">📝</span><span class="sec-name">Предложения</span><div class="check-box">✓</div></div>
+          <div class="sec-desc">5–7 коротких фраз для чтения вслух</div>
+        </div>
+        <div class="sec-card active" data-sec="стихотворение или рифмовка (4–8 строк), насыщенные целевым звуком">
+          <div class="sec-top"><span class="sec-icon">🎵</span><span class="sec-name">Стих / рифмовка</span><div class="check-box">✓</div></div>
+          <div class="sec-desc">Рифмовка с целевым звуком</div>
+        </div>
+        <div class="sec-card active" data-sec="скороговорка на целевой звук">
+          <div class="sec-top"><span class="sec-icon">🌀</span><span class="sec-name">Скороговорка</span><div class="check-box">✓</div></div>
+          <div class="sec-desc">Tongue twister для тренировки звука</div>
+        </div>
+        <div class="sec-card active" data-sec="описание позиции языка и артикуляции с простой схемой рта">
+          <div class="sec-top"><span class="sec-icon">👅</span><span class="sec-name">Позиция языка</span><div class="check-box">✓</div></div>
+          <div class="sec-desc">Описание артикуляции + схема рта</div>
+        </div>
+        <div class="sec-card active" data-sec="мини-текст для чтения (40–60 слов), насыщенный целевым звуком">
+          <div class="sec-top"><span class="sec-icon">📖</span><span class="sec-name">Мини-текст</span><div class="check-box">✓</div></div>
+          <div class="sec-desc">Связный текст 40–60 слов</div>
+        </div>
+        <div class="sec-card" id="secSongCard" data-sec="текст песни (строфа или куплет) с целевым звуком">
+          <div class="sec-top"><span class="sec-icon">🎶</span><span class="sec-name">Песня</span><div class="check-box">✓</div></div>
+          <div class="sec-desc">Строфа из песни с целевым звуком</div>
+        </div>
+        <div class="sec-card" data-sec="минимальные пары: 6 пар слов для различения целевого и похожего звука">
+          <div class="sec-top"><span class="sec-icon">🔀</span><span class="sec-name">Минимальные пары</span><div class="check-box">✓</div></div>
+          <div class="sec-desc">6 пар слов для различения звуков</div>
+        </div>
+        <div class="sec-card" data-sec="упражнение «найди и подчеркни»: найти все слова с целевым звуком в тексте">
+          <div class="sec-top"><span class="sec-icon">🔍</span><span class="sec-name">Найди звук</span><div class="check-box">✓</div></div>
+          <div class="sec-desc">Найди и подчеркни слова со звуком</div>
+        </div>
+        <div class="sec-card" data-sec="мини-диалог из 4–6 реплик с целевым звуком для ролевой игры">
+          <div class="sec-top"><span class="sec-icon">💬</span><span class="sec-name">Диалог</span><div class="check-box">✓</div></div>
+          <div class="sec-desc">Мини-диалог для ролевой игры</div>
+        </div>
+        <div class="sec-card" data-sec="блок «запиши свои слова»: 5 пустых строк с иконкой карандаша для самостоятельной записи учеником">
+          <div class="sec-top"><span class="sec-icon">✏️</span><span class="sec-name">Запиши слова</span><div class="check-box">✓</div></div>
+          <div class="sec-desc">Строки для записи своих слов учеником</div>
+        </div>
+        <div class="sec-card" data-sec="блок самооценки: шкала уверенности с тремя смайликами (😟😐😊) и фразой 'How well can I say this sound?'">
+          <div class="sec-top"><span class="sec-icon">⭐</span><span class="sec-name">Самооценка</span><div class="check-box">✓</div></div>
+          <div class="sec-desc">Шкала уверенности для ученика</div>
+        </div>
+      </div>
+
+      <div id="songInputArea" style="margin-top:16px; display:none;">
+        <span class="field-label">Текст строфы из песни (вставьте вручную)</span>
+        <input type="text" id="songTitle" placeholder="Название и исполнитель, например: Yesterday – The Beatles" style="margin-bottom:8px;">
+        <textarea id="songText" rows="3" placeholder="Yesterday, all my troubles seemed so far away…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: СТИЛЬ -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div class="step-title">Визуальный стиль</div>
+    </div>
+    <div class="step-body">
+      <div class="field">
+        <span class="field-label">Стиль оформления</span>
+        <div class="pills-wrap" id="stylePills">
+          <div class="pill style-pill active" data-val="minimalist black and white, clean sans-serif typography, lots of white space">Минималист</div>
+          <div class="pill style-pill" data-val="bright colorful children's style with playful illustrations and rounded fonts">Детский яркий</div>
+          <div class="pill style-pill" data-val="academic classic with bordered tables, serif fonts, and formal structured layout">Академический</div>
+          <div class="pill style-pill" data-val="warm craft aesthetic in beige, cream and terracotta tones, handmade feel">Крафт / бежевый</div>
+          <div class="pill style-pill" data-val="modern geometric style with bold shapes, strong grid, and expressive typography">Геометрический</div>
+          <div class="pill style-pill" data-val="handwritten handmade style, notebook paper texture, hand-drawn borders and doodles">Рукописный</div>
+          <div class="pill style-pill" data-val="retro vintage style with aged paper texture, classic serif fonts, decorative ornaments">Ретро / винтаж</div>
+          <div class="pill style-pill" data-val="Montessori-inspired natural style with soft earth tones and simple nature-object illustrations">Монтессори</div>
+          <div class="pill style-pill" data-val="kawaii pastel style with cute rounded characters, soft pinks and mints, bubbly fonts">Каваи / пастель</div>
+          <div class="pill style-pill" data-val="bold graphic design with high contrast, expressive display typography, strong color blocks">Графический bold</div>
+          <div class="pill style-pill" data-val="elegant floral style with delicate botanical illustrations, soft pinks and creams, refined serif fonts">Floral / элегантный</div>
+          <div class="pill style-pill custom-pill" data-val="" data-custom="true">✏️ Свой стиль…</div>
+        </div>
+        <div id="customStyleWrap" style="display:none; margin-top:10px;">
+          <input type="text" id="customStyleText" placeholder="Опишите стиль, например: скандинавский минимализм, синие тона">
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">Ориентация страницы</span>
+        <div class="pills-wrap" id="pagePills">
+          <div class="pill page-pill active" data-val="A4 portrait (vertical)">Вертикальная</div>
+          <div class="pill page-pill" data-val="A4 landscape (horizontal)">Горизонтальная</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: ПЕРСОНАЖ -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">4</div>
+      <div class="step-title">Персонаж / маскот (необязательно)</div>
+    </div>
+    <div class="step-body">
+      <div class="chars-grid" id="charsGrid">
+        <div class="char-card active" data-char="" onclick="pickChar(this)">
+          <span class="char-emoji">🚫</span>
+          <div class="char-name">Без персонажа</div>
+        </div>
+        <div class="char-card" data-char="a friendly owl teacher wearing glasses and a graduation cap" onclick="pickChar(this)">
+          <span class="char-emoji">🦉</span>
+          <div class="char-name">Сова-учитель</div>
+        </div>
+        <div class="char-card" data-char="a cute curious fox student holding a pencil" onclick="pickChar(this)">
+          <span class="char-emoji">🦊</span>
+          <div class="char-name">Лиса-ученик</div>
+        </div>
+        <div class="char-card" data-char="a cheerful cartoon robot assistant with a speech bubble" onclick="pickChar(this)">
+          <span class="char-emoji">🤖</span>
+          <div class="char-name">Робот</div>
+        </div>
+        <div class="char-card" data-char="a brave little dragon with an open mouth practicing sounds" onclick="pickChar(this)">
+          <span class="char-emoji">🐉</span>
+          <div class="char-name">Дракончик</div>
+        </div>
+        <div class="char-card" data-char="a friendly wizard casting a language spell with a wand" onclick="pickChar(this)">
+          <span class="char-emoji">🧙</span>
+          <div class="char-name">Волшебник</div>
+        </div>
+        <div class="char-card" data-char="a small adventurous astronaut exploring sounds in space" onclick="pickChar(this)">
+          <span class="char-emoji">👨‍🚀</span>
+          <div class="char-name">Космонавт</div>
+        </div>
+        <div class="char-card" data-char="a playful parrot mimicking sounds and repeating words" onclick="pickChar(this)">
+          <span class="char-emoji">🦜</span>
+          <div class="char-name">Попугай</div>
+        </div>
+        <div class="char-card char-custom" onclick="pickCharCustom(this)">
+          <span class="char-emoji">✏️</span>
+          <div class="char-name">Свой…</div>
+        </div>
+      </div>
+      <div id="customCharWrap" style="display:none; margin-top:10px;">
+        <input type="text" id="customCharText" placeholder="Опишите персонажа, например: маленький кот-библиотекарь в очках">
+      </div>
+    </div>
+  </div>
+
+  <!-- GENERATE -->
+  <div class="generate-wrap">
+    <button class="btn-generate" id="generateBtn">
+      <span>✨</span>
+      Сгенерировать промт
+    </button>
+    <br>
+    <span class="hint">Промт подходит для DALL·E 3, Midjourney, Ideogram, Adobe Firefly — без API, оффлайн</span>
+  </div>
+
+  <div class="output-wrap" id="outputWrap">
+    <div class="output-box">
+      <div class="output-top">
+        <span class="output-label">📋 Готовый промт</span>
+        <button class="btn-copy" id="copyBtn">Скопировать</button>
+      </div>
+      <div class="output-text" id="outputText"></div>
+    </div>
+    <p class="output-note" id="outputNote"></p>
+  </div>
+
+</div>
+
+<script>
+// ---------- SECTIONS ----------
+const activeSections = new Set([
+  'строки слов (3 строки × 8 слов с целевым звуком)',
+  'короткие предложения для чтения вслух (5–7 предложений, каждое содержит целевой звук)',
+  'стихотворение или рифмовка (4–8 строк), насыщенные целевым звуком',
+  'скороговорка на целевой звук',
+  'описание позиции языка и артикуляции с простой схемой рта',
+  'мини-текст для чтения (40–60 слов), насыщенный целевым звуком'
+]);
+
+document.querySelectorAll('.sec-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const sec = card.dataset.sec;
+    if (!sec) return;
+    card.classList.toggle('active');
+    if (card.classList.contains('active')) {
+      activeSections.add(sec);
+    } else {
+      activeSections.delete(sec);
+    }
+    // song input toggle
+    if (card.id === 'secSongCard') {
+      document.getElementById('songInputArea').style.display = card.classList.contains('active') ? 'block' : 'none';
+    }
+  });
+});
+
+// ---------- STYLE PILLS ----------
+let selectedStyle = 'minimalist black and white, clean sans-serif typography, lots of white space';
+document.querySelectorAll('.style-pill').forEach(pill => {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('.style-pill').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    if (this.dataset.custom !== undefined) {
+      document.getElementById('customStyleWrap').style.display = 'block';
+      selectedStyle = document.getElementById('customStyleText').value || 'custom illustrated style';
+    } else {
+      document.getElementById('customStyleWrap').style.display = 'none';
+      selectedStyle = this.dataset.val;
+    }
+  });
+});
+document.getElementById('customStyleText').addEventListener('input', function() {
+  selectedStyle = this.value || 'custom illustrated style';
+});
+
+// ---------- PAGE PILLS ----------
+let selectedPage = 'A4 portrait (vertical)';
+document.querySelectorAll('.page-pill').forEach(pill => {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('.page-pill').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    selectedPage = this.dataset.val;
+  });
+});
+
+// ---------- CHARACTERS ----------
+let selectedChar = '';
+function pickChar(card) {
+  document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+  selectedChar = card.dataset.char || '';
+  document.getElementById('customCharWrap').style.display = 'none';
+}
+function pickCharCustom(card) {
+  document.querySelectorAll('.char-card').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+  document.getElementById('customCharWrap').style.display = 'block';
+  selectedChar = document.getElementById('customCharText').value || '';
+}
+document.getElementById('customCharText').addEventListener('input', function() {
+  selectedChar = this.value;
+});
+
+// ---------- LANG ----------
+document.getElementById('langSelect').addEventListener('change', () => {
+  const v = document.getElementById('langSelect').value;
+  document.getElementById('customLangField').style.display = v === 'другой' ? 'block' : 'none';
+});
+
+// ---------- PROMPT BUILDER - OFFLINE ----------
+const sectionDescriptions = {
+  'строки слов (3 строки × 8 слов с целевым звуком)':
+    'WORD ROWS: Three horizontal rows, 8 words per row, all containing the target sound. Large, clear, readable type for reading aloud practice.',
+  'короткие предложения для чтения вслух (5–7 предложений, каждое содержит целевой звук)':
+    'READING SENTENCES: 5–7 short natural sentences for reading aloud, each containing multiple instances of the target sound.',
+  'стихотворение или рифмовка (4–8 строк), насыщенные целевым звуком':
+    'RHYME / POEM: A short 4–8 line playful rhyme, heavily saturated with the target sound, easy to memorize.',
+  'скороговорка на целевой звук':
+    'TONGUE TWISTER: One challenging, fun tongue twister focused on the target sound.',
+  'описание позиции языка и артикуляции с простой схемой рта':
+    'ARTICULATION GUIDE: A brief, student-friendly description of tongue/lip/teeth position for producing the sound, with a simple clean mouth cross-section diagram. Labels in the target language.',
+  'мини-текст для чтения (40–60 слов), насыщенный целевым звуком':
+    'MINI READING TEXT: A coherent 40–60 word paragraph, naturally saturated with the target sound.',
+  'текст песни (строфа или куплет) с целевым звуком':
+    'SONG VERSE: A song verse rich in the target sound, with song title and artist credited.',
+  'минимальные пары: 6 пар слов для различения целевого и похожего звука':
+    'MINIMAL PAIRS: 6 word pairs contrasting the target sound with a similar/confusable sound, presented in two neat columns.',
+  'упражнение «найди и подчеркни»: найти все слова с целевым звуком в тексте':
+    'FIND THE SOUND: A short paragraph where students find and underline all words containing the target sound. Include the instruction "Find and underline".',
+  'мини-диалог из 4–6 реплик с целевым звуком для ролевой игры':
+    'MINI DIALOGUE: A 4–6 line natural dialogue for pair role-play, saturated with the target sound. Label speakers A / B.',
+  'блок «запиши свои слова»: 5 пустых строк с иконкой карандаша для самостоятельной записи учеником':
+    'WRITE YOUR OWN WORDS: 5 blank ruled lines with a small pencil icon, for students to write their own words with the sound.',
+  'блок самооценки: шкала уверенности с тремя смайликами (😟😐😊) и фразой \'How well can I say this sound?\'':
+    'SELF-ASSESSMENT: A confidence scale with three emoji faces 😟 😐 😊 and the prompt "How well can I say this sound?"'
+};
+
+function buildPrompt() {
+  const langRaw = document.getElementById('langSelect').value;
+  const lang = langRaw === 'другой'
+    ? (document.getElementById('customLang').value.trim() || 'target language')
+    : langRaw;
+  const sound = document.getElementById('soundInput').value.trim();
+  const exWords = document.getElementById('exampleWords').value.trim();
+  const cefr = document.getElementById('cefrLevel').value;
+  const age = document.getElementById('ageGroup').value;
+
+  if (!lang) { alert('Выберите язык обучения (шаг 1).'); return null; }
+  if (!sound) { alert('Введите целевой звук (шаг 1).'); return null; }
+  if (!exWords) { alert('Введите примеры слов (шаг 1).'); return null; }
+  if (activeSections.size === 0) { alert('Выберите хотя бы одну секцию рабочего листа (шаг 2).'); return null; }
+
+  // Song info if selected
+  let songInfo = '';
+  if (activeSections.has('текст песни (строфа или куплет) с целевым звуком')) {
+    const title = document.getElementById('songTitle').value.trim();
+    const lyrics = document.getElementById('songText').value.trim();
+    if (title || lyrics) {
+      songInfo = '\nSONG TO USE: ' + (title ? `"${title}"` : 'student-chosen song') + (lyrics ? ` — Lyrics: "${lyrics}"` : '');
+    }
+  }
+
+  // Build sections list in English
+  let i = 1;
+  const sectionsList = Array.from(activeSections).map(secKey => {
+    const desc = sectionDescriptions[secKey] || secKey;
+    return `${i++}. ${desc}`;
+  }).join('\n');
+
+  const mascotLine = selectedChar 
+    ? `MASCOT: Include ${selectedChar}, small and friendly, placed in a corner, not covering text.`
+    : `MASCOT: No mascot character.`;
+
+  const style = selectedStyle || 'minimalist black and white, clean sans-serif typography';
+  
+  // English lang name hint for the image model
+  const langEnMap = {
+    'Английский': 'English',
+    'Французский': 'French',
+    'Немецкий': 'German',
+    'Испанский': 'Spanish',
+    'Итальянский': 'Italian',
+    'Русский (РКИ)': 'Russian as a foreign language',
+    'Португальский': 'Portuguese',
+    'Китайский': 'Chinese',
+    'Арабский': 'Arabic',
+    'Японский': 'Japanese'
+  };
+  const langEn = langEnMap[lang] || lang;
+
+  const prompt = `Create a professional one-page phonetics worksheet as a high-resolution flat vector illustration image, print-ready.
+
+TARGET: ${langEn}. Sound / phoneme: ${sound}
+Student level: ${cefr || 'general'} | Age group: ${age || 'general learners'}
+Base vocabulary to use: ${exWords}
+
+VISUAL STYLE: ${style}
+PAGE FORMAT: ${selectedPage}
+LAYOUT: Clean, well-organized grid with clear section headers, generous white space, large readable fonts. Professional educational worksheet look.
+
+CONTENT - Generate ALL text in ${langEn}. Every word, sentence, and poem line must be real, natural ${langEn}, and contain the target sound ${sound} multiple times. Do NOT use placeholders, lorem ipsum, or fake words. Use the provided vocabulary as a base and add more authentic words with the sound ${sound}.
+
+INCLUDE THESE SECTIONS, in order:
+${sectionsList}${songInfo}
+
+${mascotLine}
+
+TYPOGRAPHY: Clear sans-serif for body, bold display font for headers. High contrast, excellent legibility.
+RENDER: ${selectedPage}, 300 DPI, flat design, crisp vector lines, no drop shadows, no 3D effects, no watermarks, no photo-realism, print-ready educational material. All text must be sharp and fully readable.`;
+
+  const ruNote = `\n\n---\nКак использовать: Скопируйте промт выше целиком и вставьте в DALL·E 3, Midjourney, Ideogram 2.0 или Adobe Firefly. Если текст на картинке смазался — сгенерируйте ещё раз, или используйте Ideogram (лучше всего с текстом). Для печати берите PNG в максимальном разрешении.\nЯзык воркшита: ${lang}, звук: ${sound}.`;
+
+  return prompt + ruNote;
+}
+
+function generatePrompt() {
+  const text = buildPrompt();
+  if (!text) return;
+  document.getElementById('outputText').textContent = text;
+  document.getElementById('outputWrap').classList.add('visible');
+  document.getElementById('outputNote').textContent = 'Готово! Промт сгенерирован локально, без API. Просто скопируйте и вставьте в ваш image-генератор.';
+  document.getElementById('outputWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  
+  const btn = document.getElementById('copyBtn');
+  btn.textContent = 'Скопировать';
+  btn.classList.remove('copied');
+}
+
+document.getElementById('generateBtn').addEventListener('click', generatePrompt);
+
+// ---------- COPY ----------
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const text = document.getElementById('outputText').textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Скопировано';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Скопировать';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    alert('Не удалось скопировать автоматически. Выделите текст вручную.');
+  });
+});
+</script>
+</body>
+</html>
